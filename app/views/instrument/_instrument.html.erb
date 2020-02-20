@@ -1,0 +1,5 @@
+<tr>
+	<%= content_tag( 'td', link_to( instrument.series, instrument_show_url( :instrument => instrument ) ) ) %>
+	<%= content_tag( 'td', instrument.date_laid ) %>
+	<%= content_tag( 'td', instrument.is_tweeted ) %>
+</tr>

@@ -1,0 +1,7 @@
+<%= content_tag( 'h1', 'Instruments' ) %>
+<table>
+	<%= render :partial => 'instrument/table_head' %>
+	<tbody>
+		<%= render :partial => 'instrument/instrument', :collection => @instruments %>
+	</tbody>
+</table>

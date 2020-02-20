@@ -1,0 +1,32 @@
+<%= content_tag( 'h1', @instrument.series ) %>
+
+<table>
+	<tr>
+		<%= content_tag( 'th', 'Date laid:' ) %>
+		<%= content_tag( 'td', @instrument.date_laid ) %>
+	</tr>
+	<tr>
+		<%= content_tag( 'th', 'Title:' ) %>
+		<%= content_tag( 'td', @instrument.title ) %>
+	</tr>
+	<tr>
+		<%= content_tag( 'th', 'Lead organisation:' ) %>
+		<%= content_tag( 'td', @instrument.lead_organisation ) %>
+	</tr>
+	<tr>
+		<%= content_tag( 'th', 'Instrument URI:' ) %>
+		<%= content_tag( 'td', @instrument.instrument_uri ) %>
+	</tr>
+	<tr>
+		<%= content_tag( 'th', 'Work package URI:' ) %>
+		<%= content_tag( 'td', @instrument.work_package_uri ) %>
+	</tr>
+	<tr>
+		<%= content_tag( 'th', 'Legislation URI:' ) %>
+		<%= content_tag( 'td', @instrument.tna_uri ) %>
+	</tr>
+	<tr>
+		<%= content_tag( 'th', 'Tweeted:' ) %>
+		<%= content_tag( 'td', @instrument.is_tweeted ) %>
+	</tr>
+</table>
