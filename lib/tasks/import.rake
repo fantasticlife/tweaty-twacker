@@ -8,22 +8,51 @@ end
 
 task :import_from_sparql => :environment do
   puts "importing raw data from sparql query"
-  today = Date.today
-  today = Date.new(2020,3,12)
-  uri = URI.parse( sparql_uri( today ) )
+  from_date = 2.days.ago.to_date
+  to_date = Date.today
   
-  request = Net::HTTP::Get.new( uri )
+  uri = URI.parse( "https://api.parliament.uk/sparql" )
+  
+  request = Net::HTTP::Post.new( uri )
+  
   request["Accept"] = "application/sparql-results+json"
+  
+  request.set_form_data(
+    "query" => "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX : <https://id.parliament.uk/schema/>
+      select ?Treaty ?Treatyname ?LeadOrg ?Series ?Link ?workPackage ?procStepName ?itemDate where {
+        ?Treaty a :Treaty .  
+        ?Treaty rdfs:label ?Treatyname .
+        OPTIONAL{ ?Treaty :treatyHasLeadGovernmentOrganisation/ rdfs:label ?LeadOrg .} 
+        OPTIONAL {?Treaty :treatyHasSeriesMembership/ :seriesItemCitation ?Series.}
+        OPTIONAL {?Treaty :workPackagedThingHasWorkPackagedThingWebLink ?Link.}
+        ?Treaty :workPackagedThingHasWorkPackage ?workPackage .
+        ?workPackage :workPackageHasProcedure/rdfs:label ?proc
+        FILTER(?proc IN (\"Treaties subject to the Constitutional Reform and Governance Act 2010\"))
+          ?workPackage :workPackageHasBusinessItem/:businessItemHasProcedureStep ?procStep ;
+          :workPackageHasBusinessItem ?busItem .
+          ?busItem :businessItemHasProcedureStep/rdfs:label ?itemDate2;
+          :businessItemDate ?itemDate .
+          ?procStep rdfs:label ?procStepName.
+        FILTER(?procStepName IN (\"Laid before the House of Commons\"))
+        FILTER(?itemDate2 IN (\"Laid before the House of Commons\"))
+        FILTER ( str(?itemDate) >= '#{from_date}' && str(?itemDate) <= '#{to_date}')
+      }
+    ",
+  )
+
   req_options = {
     use_ssl: uri.scheme == "https",
   }
-  
+
   response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
     http.request(request)
   end
+  
   json = JSON( response.body )
   puts "found #{json['results']['bindings'].size} instruments"
   json['results']['bindings'].each do |treaty_json|
+      puts treaty_json["Treatyname"]["value"].strip
     instrument = Instrument.where( instrument_uri: treaty_json['Treaty']['value'] ).first
     unless instrument
       instrument = Instrument.new
@@ -37,11 +66,4 @@ task :import_from_sparql => :environment do
       instrument.save
     end
   end
-end
-
-
-
-
-def sparql_uri( date )
-  "https://api.parliament.uk/sparql?query=PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%0APREFIX%20%3A%20%3Chttps%3A%2F%2Fid.parliament.uk%2Fschema%2F%3E%0Aselect%20%3FTreaty%20%3FTreatyname%20%3FLeadOrg%20%3FSeries%20%3FLink%20%3FworkPackage%20%3FprocStepName%20%3FitemDate%20where%20%7B%0A%20%3FTreaty%20a%20%3ATreaty%20.%20%20%0A%20%20%20%20%20%3FTreaty%20rdfs%3Alabel%20%3FTreatyname%20.%0A%20%20OPTIONAL%7B%20%3FTreaty%20%3AtreatyHasLeadGovernmentOrganisation%2F%20rdfs%3Alabel%20%3FLeadOrg%20.%7D%20%0A%20%20OPTIONAL%20%7B%3FTreaty%20%3AtreatyHasSeriesMembership%2F%20%3AseriesItemCitation%20%3FSeries.%7D%0A%20%20OPTIONAL%20%7B%3FTreaty%20%3AworkPackagedThingHasWorkPackagedThingWebLink%20%3FLink.%7D%0A%09%3FTreaty%20%3AworkPackagedThingHasWorkPackage%20%3FworkPackage%20.%0A%20%20%09%3FworkPackage%20%3AworkPackageHasProcedure%2Frdfs%3Alabel%20%3Fproc%0A%20%20FILTER(%3Fproc%20IN%20(%22Treaties%20subject%20to%20the%20Constitutional%20Reform%20and%20Governance%20Act%202010%22))%0A%20%3FworkPackage%20%3AworkPackageHasBusinessItem%2F%3AbusinessItemHasProcedureStep%20%3FprocStep%20%3B%0A%20%20%20%20%20%20%20%20%20%20%20%3AworkPackageHasBusinessItem%20%3FbusItem%20.%0A%20%20%3FbusItem%20%3AbusinessItemHasProcedureStep%2Frdfs%3Alabel%20%3FitemDate2%3B%0A%20%20%20%20%20%20%20%20%20%20%20%3AbusinessItemDate%20%3FitemDate%20.%0A%20%20%3FprocStep%20rdfs%3Alabel%20%3FprocStepName.%0A%20%20%20%20%0A%20%20FILTER(%3FprocStepName%20IN%20(%22Laid%20before%20the%20House%20of%20Commons%22))%0A%20%20FILTER(%3FitemDate2%20IN%20(%22Laid%20before%20the%20House%20of%20Commons%22))%0A%20%20FILTER%20(%20str(%3FitemDate)%20%3E%20'#{date}')%0A%20%20%20%7D%0A"
 end
