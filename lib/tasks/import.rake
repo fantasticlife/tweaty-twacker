@@ -9,6 +9,7 @@ end
 task :import_from_sparql => :environment do
   puts "importing raw data from sparql query"
   today = Date.today
+  today = Date.new(2020,3,12)
   uri = URI.parse( sparql_uri( today ) )
   
   request = Net::HTTP::Get.new( uri )
@@ -21,7 +22,7 @@ task :import_from_sparql => :environment do
     http.request(request)
   end
   json = JSON( response.body )
-  puts "importing #{json['results']['bindings'].size} instruments"
+  puts "found #{json['results']['bindings'].size} instruments"
   json['results']['bindings'].each do |treaty_json|
     instrument = Instrument.where( instrument_uri: treaty_json['Treaty']['value'] ).first
     unless instrument
