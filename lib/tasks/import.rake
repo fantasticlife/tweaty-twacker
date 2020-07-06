@@ -8,7 +8,7 @@ end
 
 task :import_from_sparql => :environment do
   puts "importing raw data from sparql query"
-  from_date = 2.days.ago.to_date
+  from_date = 5.days.ago.to_date
   to_date = Date.today
   
   uri = URI.parse( "https://api.parliament.uk/sparql" )
