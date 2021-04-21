@@ -18,7 +18,7 @@ class Instrument < ActiveRecord::Base
     tweet_text = tweet_text + self.lead_organisation
     tweet_text = tweet_text + ' treaty '
     tweet_text = tweet_text + self.series
-    tweet_text = tweet_text + ' has been laid by the FDCO '
+    tweet_text = tweet_text + ' has been laid by the FCDO '
     tweet_text = tweet_text + url
     tweet_text
   end
