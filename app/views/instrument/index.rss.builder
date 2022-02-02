@@ -8,6 +8,13 @@ xml.rss( :version => '2.0', 'xmlns:atom' => 'http://www.w3.org/2005/Atom' ) do
     xml.managingEditor( 'somervillea@parliament.uk (Anya Somerville)' )
     xml.pubDate( @instruments.first.date_laid.rfc822 )
     xml.tag!( 'atom:link', { :href => "https://tweaty-twacker.herokuapp.com/instruments.rss", :rel => 'self', :type => 'application/rss+xml' } )
+    xml.item do
+      xml.guid( "https://api.parliament.uk/tweatytwacker/rss" )
+      xml.title( "House move" )
+      xml.description( "This RSS feed has moved home." )
+      xml.link( "https://api.parliament.uk/tweatytwacker/rss" )
+      xml.pubDate( "Wed 2 Feb 2022 12:00:00 +0000" )
+    end
     xml << render(:partial => 'instrument', :collection => @instruments )
   end
 end
